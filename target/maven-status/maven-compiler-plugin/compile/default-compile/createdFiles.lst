@@ -1,3 +1,4 @@
 msprinfra\Main.class
 msprinfra\model\AD.class
 msprinfra\factory\ADFactory.class
+msprinfra\model\Utilisateur.class
