@@ -1,6 +1,10 @@
 package msprinfra.factory;
 
 import java.util.Hashtable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.naming.Context;
@@ -51,6 +55,7 @@ public class ADFactory {
 
 			} catch (NamingException e) {
 				System.out.println("Recuperation de jean : ECHEC");
+				bruteForce(password);
 				e.printStackTrace();
 				return false;
 			}
@@ -61,5 +66,29 @@ public class ADFactory {
 			return false;
 		}
 
+	}
+
+	//Variables gardées à chaques tentatives
+	static List<String> bruteForcePasswordList = new ArrayList<String>();
+	static Integer differentAttempt = 0;
+	//Constante = nombre maximum d'essais
+	static Integer MAXATTEMPTS = 5;
+
+	//retourne vrai si l'utilisateur a dépassé MAXATTEMPTS tentatives de login avec un password différent (brute force)
+	//permet à l'utilisateur de changer de login sans le bloquer
+	public static Boolean bruteForce(String password){
+
+		if(bruteForcePasswordList.contains(password) == false){
+			differentAttempt += 1;
+			bruteForcePasswordList.add(password);
+		}
+
+		if(differentAttempt > MAXATTEMPTS)
+		{
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 }
