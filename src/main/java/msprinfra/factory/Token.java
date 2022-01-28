@@ -1,17 +1,30 @@
 package msprinfra.factory;
 
-import msprinfra.model.Utilisateur;
+import java.time.LocalDateTime;
 
 public class Token {
+
+    /**
+     * token duration validity in hours
+     */
+    private Long tokenDurationValidity = 2L;
+
     /**
      * token used in the session
      * this token is valid 2h
      */
-    String token;
-    String expirationDatetime;
+    private final String token;
 
-    public Token(String token) {
-        this.token = token;
+
+    /**
+     * stock the expiration datetime
+     * the expiration is 2h after the
+     * token generation
+     */
+    private LocalDateTime expirationDateTime;
+
+    public Token() {
+        this.token = this.generateToken();
     }
 
     /**
@@ -21,17 +34,20 @@ public class Token {
      */
     private String generateToken(){
         String token = "";
+        this.expirationDateTime = LocalDateTime.now().plusHours(this.tokenDurationValidity);
         return token;
     }
 
     /**
      * check if the token give by the user is correct
      *
-     * @param token token to check
      * @return boolean
      */
-    public static boolean checkToken(String token){
-        return true;
+    public boolean checkTokenValidity(){
+        return LocalDateTime.now().isBefore(this.expirationDateTime);
     }
 
+    public String getToken() {
+        return token;
+    }
 }
