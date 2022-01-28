@@ -1,6 +1,8 @@
 package msprinfra.factory;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import javax.naming.Context;
@@ -21,8 +23,10 @@ public class ADFactory {
 		AD activeDirectory = new AD();
 		activeDirectory.setServerIP(resource.getString("AD.Ip"));
 		activeDirectory.setServerPort(resource.getString("AD.ServerPort"));
+		activeDirectory.setServerDomain(resource.getString("AD.DomainName"));
+		activeDirectory.setServerDomainExtension(resource.getString("AD.DomainExtension"));
 
-		activeDirectory.setServerLogin(login);
+		activeDirectory.setServerLogin(login + "@" + activeDirectory.getServerDomain());
 		activeDirectory.setServerPass(password);
 
 		Hashtable<String, String> environnement = new Hashtable<String, String>();
@@ -39,8 +43,10 @@ public class ADFactory {
 			System.out.println("Connexion au serveur : SUCCES");
 
 			try {
-				Attributes attrs = contexte.getAttributes("CN=Jean Test,OU=UTILISATEURS,DC=LECHATELET,DC=COM");
-				System.out.println("Recuperation de jean : SUCCES");
+
+				Attributes attrs = contexte.getAttributes("CN=" + login + ",OU=UTILISATEURS,DC="
+						+ activeDirectory.getServerDomain() + ",DC=" + activeDirectory.getServerDomainExtension());
+				System.out.println("Recuperation de l'utilisateur : SUCCES");
 
 				String name = (String) attrs.get("name").get();
 				String groupe = (String) attrs.get("memberof").get();
@@ -50,7 +56,8 @@ public class ADFactory {
 				return true;
 
 			} catch (NamingException e) {
-				System.out.println("Recuperation de jean : ECHEC");
+				System.out.println("Recuperation des attributs de l'utilisateur : ECHEC");
+				bruteForce(password);
 				e.printStackTrace();
 				return false;
 			}
@@ -61,5 +68,28 @@ public class ADFactory {
 			return false;
 		}
 
+	}
+
+	// Variables gardées à chaques tentatives
+	static List<String> bruteForcePasswordList = new ArrayList<String>();
+	static Integer differentAttempt = 0;
+	// Constante = nombre maximum d'essais
+	static Integer MAXATTEMPTS = 5;
+
+	// retourne vrai si l'utilisateur a dépassé MAXATTEMPTS tentatives de login
+	// avec un password différent (brute force)
+	// permet à l'utilisateur de changer de login sans le bloquer
+	public static Boolean bruteForce(String password) {
+
+		if (bruteForcePasswordList.contains(password) == false) {
+			differentAttempt += 1;
+			bruteForcePasswordList.add(password);
+		}
+
+		if (differentAttempt > MAXATTEMPTS) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

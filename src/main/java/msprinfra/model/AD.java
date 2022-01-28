@@ -13,5 +13,7 @@ public class AD {
 	private String serverPort;
 	private String serverLogin;
 	private String serverPass;
+	private String serverDomain;
+	private String serverDomainExtension;
 
 }
