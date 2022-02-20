@@ -1,5 +1,7 @@
 package msprinfra.factory;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.ResourceBundle;
 
@@ -86,5 +88,9 @@ public class ADFactory {
 		} else {
 			return false;
 		}
+	}
+
+	public static Boolean ipControl(String ip) throws UnknownHostException {
+		return InetAddress.getByName(ip).getHostName().endsWith("fr");
 	}
 }
