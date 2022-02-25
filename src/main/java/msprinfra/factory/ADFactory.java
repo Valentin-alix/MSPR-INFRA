@@ -11,7 +11,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
-import msprinfra.model.AD;
 import msprinfra.model.Guest;
 import msprinfra.model.User;
 
@@ -19,51 +18,26 @@ public class ADFactory {
 
 	private static final ResourceBundle resource = ResourceBundle.getBundle("info");
 
-	public static Boolean connection(String login, String password) {
+	public static Boolean authUser(String login, String password) {
 
-		AD activeDirectory = new AD();
 		Guest guest = new Guest();
-
-		activeDirectory.setServerIP(resource.getString("AD.Ip"));
-		activeDirectory.setServerPort(resource.getString("AD.ServerPort"));
-		activeDirectory.setServerDomain(resource.getString("AD.DomainName"));
-		activeDirectory.setServerDomainExtension(resource.getString("AD.DomainExtension"));
-		activeDirectory.setServerLogin(login + "@" + activeDirectory.getServerDomain());
-		activeDirectory.setServerPass(password);
 
 		Hashtable<String, String> environnement = new Hashtable<String, String>();
 
 		environnement.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 		environnement.put(Context.PROVIDER_URL,
-				"ldap://" + activeDirectory.getServerIP() + ":" + activeDirectory.getServerPort() + "/");
+				"ldap://" + resource.getString("AD.Ip") + ":" + resource.getString("AD.ServerPort") + "/");
 		environnement.put(Context.SECURITY_AUTHENTICATION, "simple");
-		environnement.put(Context.SECURITY_PRINCIPAL, activeDirectory.getServerLogin());
-		environnement.put(Context.SECURITY_CREDENTIALS, activeDirectory.getServerPass());
+		environnement.put(Context.SECURITY_PRINCIPAL, login + "@" + resource.getString("AD.DomainName"));
+		environnement.put(Context.SECURITY_CREDENTIALS, password);
 		try {
 
 			// tentative de conexion à l'active directory avec le login et password spécifié
 			DirContext contexte = new InitialDirContext(environnement);
 
 			System.out.println("Connexion au serveur : SUCCES");
-
-			try {
-				Attributes attrs = contexte.getAttributes("CN=" + login + ",OU=UTILISATEURS,DC="
-						+ activeDirectory.getServerDomain() + ",DC=" + activeDirectory.getServerDomainExtension());
-				System.out.println("Recuperation de l'utilisateur : SUCCES");
-
-				String name = (String) attrs.get("name").get();
-				String groupe = (String) attrs.get("memberof").get();
-				User user = new User();
-				user.setName(name);
-				user.setGroupe(groupe);
-				System.out.println(user);
-				return true;
-
-			} catch (NamingException e) {
-				System.out.println("Recuperation des attributs de l'utilisateur : ECHEC");
-				bruteForce(password, guest);
-				return false;
-			}
+			System.out.println(getAttribute(contexte, login, password));
+			return true;
 
 		} catch (NamingException e) {
 			System.out.println("Connexion au serveur : ECHEC");
@@ -71,6 +45,25 @@ public class ADFactory {
 			return false;
 		}
 
+	}
+
+	public static User getAttribute(DirContext contexte, String login, String password) {
+		try {
+			Attributes attrs = contexte.getAttributes("CN=" + login + ",OU=UTILISATEURS,DC="
+					+ resource.getString("AD.DomainName") + ",DC=" + resource.getString("AD.DomainExtension"));
+			System.out.println("Recuperation de l'utilisateur : SUCCES");
+
+			String name = (String) attrs.get("name").get();
+			String groupe = (String) attrs.get("memberof").get();
+			User user = new User();
+			user.setName(name);
+			user.setGroupe(groupe);
+			return user;
+
+		} catch (NamingException e) {
+			System.out.println("Recuperation des attributs de l'utilisateur : ECHEC");
+			return null;
+		}
 	}
 
 	// retourne vrai si l'utilisateur a dépasser MAXATTEMPTS tentatives de login

@@ -8,7 +8,7 @@ public class Main {
 
 	public static void main(String[] args) throws UnknownHostException {
 
-		System.out.println(ADFactory.connection("JeanTest", "Mdpauhasard35!"));
+		System.out.println(ADFactory.authUser("JeanTest", "Mdpauhasard35!"));
 	}
 
 }
